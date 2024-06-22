@@ -5,6 +5,13 @@ import dataJson from '@/public/assets/data.json';
 import Link from 'next/link';
 import LayoutHome from '@/app/components/layout';
 
+// Static imports for github pages only
+import {
+  staticImageImports,
+  staticInternalImageImports,
+  staticGeologyImageImports,
+} from '@/app/_lib/githubPagesStaticImages';
+
 const bgColor = {
   mercury: 'bg-[#419EBB]',
   venus: 'bg-[#EDA249]',
@@ -73,8 +80,17 @@ export default function Planet({ params }: { params: { planet: string; mode: str
     'internal-structure': data.images.internal.slice(1),
     'surface-geology': data.images.planet.slice(1),
   };
-  const additionalImage = params.mode === links.geology ? data.images.geology.slice(1) : undefined;
-  console.log(data[Object.entries(links).find(([, value]) => value === params.mode)?.[0] as keyof typeof links].source);
+  const srcPlanetGithub = {
+    overview: staticImageImports[params.planet as keyof typeof staticImageImports],
+    'internal-structure': staticInternalImageImports[params.planet as keyof typeof staticInternalImageImports],
+    'surface-geology': staticImageImports[params.planet as keyof typeof staticImageImports],
+  };
+  const additionalImage =
+    params.mode === links.geology
+      ? process.env.NEXT_PUBLIC_GITHUB_PAGES
+        ? staticGeologyImageImports[params.planet as keyof typeof staticGeologyImageImports]
+        : data.images.geology.slice(1)
+      : undefined;
   return (
     <LayoutHome params={params}>
       <div className="mx-auto flex max-w-[1110px] flex-col justify-between xl:flex-row">
@@ -95,7 +111,14 @@ export default function Planet({ params }: { params: { planet: string; mode: str
           ))}
         </ul>
         <div className="relative mx-auto flex size-[369px] min-h-[369px] translate-y-[10%] scale-75 flex-col items-center justify-center xl:mx-0 xl:mt-[100px] xl:size-[613px] xl:min-h-fit xl:translate-y-0 xl:scale-100">
-          <ImagePlanet src={srcPlanet[params.mode as keyof typeof srcPlanet]} alt={`Image of ${data.name}`} />
+          <ImagePlanet
+            src={
+              process.env.NEXT_PUBLIC_GITHUB_PAGES
+                ? srcPlanetGithub[params.mode as keyof typeof srcPlanet]
+                : srcPlanet[params.mode as keyof typeof srcPlanet]
+            }
+            alt={`Image of ${data.name}`}
+          />
           {additionalImage && (
             <Image
               width={163}
